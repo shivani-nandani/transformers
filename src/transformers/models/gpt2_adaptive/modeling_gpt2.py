@@ -15,6 +15,8 @@
 # limitations under the License.
 """PyTorch OpenAI GPT-2 model."""
 
+import datetime
+
 import math
 import os
 import warnings
@@ -53,7 +55,7 @@ from .adaptive_span import AdaptiveSpan
 
 logger = logging.get_logger(__name__)
 
-_CHECKPOINT_FOR_DOC = "gpt2"
+_CHECKPOINT_FOR_DOC = "gpt2_adaptive"
 _CONFIG_FOR_DOC = "GPT2Config"
 
 GPT2_PRETRAINED_MODEL_ARCHIVE_LIST = [
@@ -64,6 +66,10 @@ GPT2_PRETRAINED_MODEL_ARCHIVE_LIST = [
     "distilgpt2",
     # See all GPT-2 models at https://huggingface.co/models?filter=gpt2
 ]
+
+f = open("/Users/shivaninandani/ASU/semester-3/cse-576-nlp/project/code/shape.txt", "a")
+f.write("\n-----" + str(datetime.datetime.now()) + "-----\n")
+f.close()
 
 
 def load_tf_weights_in_gpt2(model, config, gpt2_checkpoint_path):
@@ -129,7 +135,7 @@ def _skew(X, pad_value):
     X = F.pad(X, (0, M + 1), value=pad_value)  # B x M x (L+M+1)
     X = X.view(B, -1)  # B x ML+MM+M
     X = X[:, :-M]  # B x ML+MM
-    X = X.view(B, M, M + L)  # B x M x L+M
+    X = X.view(B, M + L, M)  # B x M x L+M
     return X
 
 
@@ -167,13 +173,24 @@ class SeqAttention(nn.Module):
         # compute attention from context
         # B x M (dest) x (M+L) (src)
 
-        # TODO fix this
+        f = open("/Users/shivaninandani/ASU/semester-3/cse-576-nlp/project/code/shape.txt", "a")
+        f.write("\n\n")
+        f.write("query \t" + str(query.shape) + "\n")
+        f.write("key \t" + str(key.shape) + "\n")
+        f.write("value \t" + str(query.shape) + "\n")
+        f.write("key_pe \t" + str(key_pe.shape) + "\n")
+
         attn_cont = torch.matmul(query, key.transpose(-1, -2))
 
-        attn_cont = _unskew(attn_cont)  # B x M x L
+        # f.write("attn_cont before unskew \t" + str(attn_cont.shape) + "\n")
+
+        # attn_cont = _unskew(attn_cont)  # B x M x L
+
+        # f.write("attn_cont before unskew \t" + str(attn_cont.shape) + "\n")
 
         # compute the effect of position embedding
         attn_pos = torch.matmul(query, key_pe)  # B x M x L_pos
+        f.write("attn_pos \t" + str(attn_pos.shape) + "\n")
 
         attn = attn_cont + attn_pos
 
@@ -184,11 +201,15 @@ class SeqAttention(nn.Module):
 
         attn = self.dropout(attn)  # B x M X L_pos
 
+        f.write("attn_cont before skew \t" + str(attn_cont.shape) + "\n")
         attn_cont = _skew(attn, 0)  # B x M X (L+M)
+        f.write("attn_cont after skew \t" + str(attn_cont.shape) + "\n")
 
         out = torch.matmul(attn_cont, value)  # B x M x H
+        f.write("out \t" + str(attn_cont.shape) + "\n")
+        f.close()
 
-        return out, attn_cont
+        return out
 
     def get_cache_size(self):
         return self.adaptive_span.get_cache_size()
@@ -221,7 +242,16 @@ class GPT2Attention(nn.Module):
         self.scale_attn_weights = config.scale_attn_weights
         self.is_cross_attention = is_cross_attention
 
-        self.attn_span = 32   # config.max_position_embeddings
+        self.attn_span = config.max_position_embeddings
+        # # add adaptive-attention-span
+        # self.adaptive_span = AdaptiveSpan(
+        #     attn_span=config.max_position_embeddings,
+        #     adapt_span_loss=0.02,
+        #     adapt_span_ramp=config.max_position_embeddings,
+        #     adapt_span_init=0.5,
+        #     adapt_span_cache=True,
+        #     nb_heads=config.num_attention_heads,
+        # )
 
         self.attn = SeqAttention(
             hidden_size=self.head_dim,
@@ -248,8 +278,6 @@ class GPT2Attention(nn.Module):
             self.q_attn = Conv1D(self.embed_dim, self.embed_dim)
         else:
             self.c_attn = Conv1D(3 * self.embed_dim, self.embed_dim)
-        self.query_attn = Conv1D(self.embed_dim, self.embed_dim)
-        self.key_value_attn = Conv1D(2 * self.embed_dim, self.embed_dim)
         self.c_proj = Conv1D(self.embed_dim, self.embed_dim)
 
         self.attn_dropout = nn.Dropout(config.attn_pdrop)
@@ -282,6 +310,10 @@ class GPT2Attention(nn.Module):
 
     def _attn(self, query, key, value, attention_mask=None, head_mask=None):
         attn_weights = torch.matmul(query, key.transpose(-1, -2))
+
+        f = open("/Users/shivaninandani/ASU/semester-3/cse-576-nlp/project/code/shape.txt", "a")
+        f.write("attn_weights\t" + str(attn_weights.shape) + "\n")
+        f.close()
 
         # scaling
         if self.scale_attn_weights:
@@ -411,13 +443,13 @@ class GPT2Attention(nn.Module):
             key, value = self.c_attn(encoder_hidden_states).split(self.split_size, dim=2)
             attention_mask = encoder_attention_mask
         else:
-            # query, key, value = self.c_attn(hidden_states).split(self.split_size, dim=2)
+            query, key, value = self.c_attn(hidden_states).split(self.split_size, dim=2)
 
-            query = self.query_attn(hidden_states)
-            hidden_states_pad = F.pad(hidden_states, (0, 0, 0, self.attn_span), "constant", 0)
-            key, value = self.key_value_attn(hidden_states_pad).split(self.split_size, dim=2)
+        f = open("/Users/shivaninandani/ASU/semester-3/cse-576-nlp/project/code/shape.txt", "a")
+        f.write("query before head_reshape\t" + str(query.shape) + "\n")
+        f.write("key before head_reshape\t" + str(key.shape) + "\n")
+        f.write("value before head_reshape\t" + str(query.shape) + "\n")
 
-        # TODO remove edits here
         # adaptive attention
         B = query.size(0)
         K = self.num_heads
@@ -431,36 +463,46 @@ class GPT2Attention(nn.Module):
         key = self.proj_key(key)
         key = self.head_reshape(key)
 
-        attn_output, attn_weights = self.attn(
-            query, key, value, nn.Parameter(torch.randn(1, self.embed_dim // self.num_heads, self.attn_span))
-        )  # B_K x M x D
-        attn_output = attn_output.view(B, K, M, D)  # B x K x M x D
-        attn_output = attn_output.transpose(1, 2).contiguous()  # B x M x K x D
-        attn_output = attn_output.view(B, M, -1)  # B x M x K_D
-        attn_output = self.proj_out(attn_output)
+        f.write("\n")
+        f.write("query after head_reshape\t" + str(query.shape) + "\n")
+        f.write("key after head_reshape\t" + str(key.shape) + "\n")
+        f.write("value after head_reshape\t" + str(query.shape) + "\n")
+        f.close()
 
-        # query = self._split_heads(query, self.num_heads, self.head_dim)
-        # key = self._split_heads(key, self.num_heads, self.head_dim)
-        # value = self._split_heads(value, self.num_heads, self.head_dim)
-        #
-        # if layer_past is not None:
-        #     past_key, past_value = layer_past
-        #     key = torch.cat((past_key, key), dim=-2)
-        #     value = torch.cat((past_value, value), dim=-2)
+        out = self.attn(
+            query, key, value, nn.Parameter(torch.randn(1, self.embed_dim // self.num_heads, M))
+        )  # B_K x M x D
+        out = out.view(B, K, M, D)  # B x K x M x D
+        out = out.transpose(1, 2).contiguous()  # B x M x K x D
+        out = out.view(B, M, -1)  # B x M x K_D
+        attn_weights = self.proj_out(out)
+
+        query = self._split_heads(query, self.num_heads, self.head_dim)
+        key = self._split_heads(key, self.num_heads, self.head_dim)
+        value = self._split_heads(value, self.num_heads, self.head_dim)
+
+        if layer_past is not None:
+            past_key, past_value = layer_past
+            key = torch.cat((past_key, key), dim=-2)
+            value = torch.cat((past_value, value), dim=-2)
 
         if use_cache is True:
             present = (key, value)
         else:
             present = None
 
-        # if self.reorder_and_upcast_attn:
-        #     attn_output, attn_weights = self._upcast_and_reordered_attn(query, key, value, attention_mask, head_mask)
-        # else:
-        #     attn_output, attn_weights = self._attn(query, key, value, attention_mask, head_mask)
-        #
-        # attn_output = self._merge_heads(attn_output, self.num_heads, self.head_dim)
-        # attn_output = self.c_proj(attn_output)
-        # attn_output = self.resid_dropout(attn_output)
+        if self.reorder_and_upcast_attn:
+            attn_output, attn_weights = self._upcast_and_reordered_attn(query, key, value, attention_mask, head_mask)
+        else:
+            attn_output, attn_weights = self._attn(query, key, value, attention_mask, head_mask)
+
+        f = open("/Users/shivaninandani/ASU/semester-3/cse-576-nlp/project/code/shape.txt", "a")
+        f.write("attn_output before _merge_heads\t" + str(attn_output.shape) + "\n")
+        attn_output = self._merge_heads(attn_output, self.num_heads, self.head_dim)
+        f.write("attn_output after _merge_heads\t" + str(attn_output.shape) + "\n")
+        f.close()
+        attn_output = self.c_proj(attn_output)
+        attn_output = self.resid_dropout(attn_output)
 
         outputs = (attn_output, present)
         if output_attentions:

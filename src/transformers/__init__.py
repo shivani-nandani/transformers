@@ -358,6 +358,7 @@ _import_structure = {
     "models.git": ["GIT_PRETRAINED_CONFIG_ARCHIVE_MAP", "GitConfig", "GitProcessor", "GitVisionConfig"],
     "models.glpn": ["GLPN_PRETRAINED_CONFIG_ARCHIVE_MAP", "GLPNConfig"],
     "models.gpt2": ["GPT2_PRETRAINED_CONFIG_ARCHIVE_MAP", "GPT2Config", "GPT2Tokenizer"],
+    # "models.gpt2_adaptive": ["GPT2_PRETRAINED_CONFIG_ARCHIVE_MAP", "GPT2Config", "GPT2Tokenizer"],
     "models.gpt_bigcode": ["GPT_BIGCODE_PRETRAINED_CONFIG_ARCHIVE_MAP", "GPTBigCodeConfig"],
     "models.gpt_neo": ["GPT_NEO_PRETRAINED_CONFIG_ARCHIVE_MAP", "GPTNeoConfig"],
     "models.gpt_neox": ["GPT_NEOX_PRETRAINED_CONFIG_ARCHIVE_MAP", "GPTNeoXConfig"],
@@ -876,6 +877,7 @@ else:
     _import_structure["models.fnet"].append("FNetTokenizerFast")
     _import_structure["models.funnel"].append("FunnelTokenizerFast")
     _import_structure["models.gpt2"].append("GPT2TokenizerFast")
+    # _import_structure["models.gpt2_adaptive"].append("GPT2TokenizerFast")
     _import_structure["models.gpt_neox"].append("GPTNeoXTokenizerFast")
     _import_structure["models.gpt_neox_japanese"].append("GPTNeoXJapaneseTokenizer")
     _import_structure["models.herbert"].append("HerbertTokenizerFast")
@@ -951,6 +953,7 @@ except OptionalDependencyNotAvailable:
     ]
 else:
     _import_structure["models.gpt2"].append("TFGPT2Tokenizer")
+    # _import_structure["models.gpt2_adaptive"].append("TFGPT2Tokenizer")
 
 # Vision-specific objects
 try:
@@ -1922,6 +1925,19 @@ else:
             "load_tf_weights_in_gpt2",
         ]
     )
+    # _import_structure["models.gpt2_adaptive"].extend(
+    #     [
+    #         "GPT2_PRETRAINED_MODEL_ARCHIVE_LIST",
+    #         "GPT2DoubleHeadsModel",
+    #         "GPT2ForQuestionAnswering",
+    #         "GPT2ForSequenceClassification",
+    #         "GPT2ForTokenClassification",
+    #         "GPT2LMHeadModel",
+    #         "GPT2Model",
+    #         "GPT2PreTrainedModel",
+    #         "load_tf_weights_in_gpt2",
+    #     ]
+    # )
     _import_structure["models.gpt_bigcode"].extend(
         [
             "GPT_BIGCODE_PRETRAINED_MODEL_ARCHIVE_LIST",
@@ -3596,6 +3612,17 @@ else:
             "TFGPT2PreTrainedModel",
         ]
     )
+    # _import_structure["models.gpt2_adaptive"].extend(
+    #     [
+    #         "TF_GPT2_PRETRAINED_MODEL_ARCHIVE_LIST",
+    #         "TFGPT2DoubleHeadsModel",
+    #         "TFGPT2ForSequenceClassification",
+    #         "TFGPT2LMHeadModel",
+    #         "TFGPT2MainLayer",
+    #         "TFGPT2Model",
+    #         "TFGPT2PreTrainedModel",
+    #     ]
+    # )
     _import_structure["models.gptj"].extend(
         [
             "TFGPTJForCausalLM",
@@ -4162,6 +4189,7 @@ else:
     )
     _import_structure["models.encoder_decoder"].append("FlaxEncoderDecoderModel")
     _import_structure["models.gpt2"].extend(["FlaxGPT2LMHeadModel", "FlaxGPT2Model", "FlaxGPT2PreTrainedModel"])
+    # _import_structure["models.gpt2_adaptive"].extend(["FlaxGPT2LMHeadModel", "FlaxGPT2Model", "FlaxGPT2PreTrainedModel"])
     _import_structure["models.gpt_neo"].extend(
         ["FlaxGPTNeoForCausalLM", "FlaxGPTNeoModel", "FlaxGPTNeoPreTrainedModel"]
     )
@@ -4573,6 +4601,7 @@ if TYPE_CHECKING:
     from .models.git import GIT_PRETRAINED_CONFIG_ARCHIVE_MAP, GitConfig, GitProcessor, GitVisionConfig
     from .models.glpn import GLPN_PRETRAINED_CONFIG_ARCHIVE_MAP, GLPNConfig
     from .models.gpt2 import GPT2_PRETRAINED_CONFIG_ARCHIVE_MAP, GPT2Config, GPT2Tokenizer
+    # from .models.gpt2_adaptive import GPT2_PRETRAINED_CONFIG_ARCHIVE_MAP, GPT2Config, GPT2Tokenizer
     from .models.gpt_bigcode import GPT_BIGCODE_PRETRAINED_CONFIG_ARCHIVE_MAP, GPTBigCodeConfig
     from .models.gpt_neo import GPT_NEO_PRETRAINED_CONFIG_ARCHIVE_MAP, GPTNeoConfig
     from .models.gpt_neox import GPT_NEOX_PRETRAINED_CONFIG_ARCHIVE_MAP, GPTNeoXConfig
@@ -5055,6 +5084,7 @@ if TYPE_CHECKING:
         from .models.fnet import FNetTokenizerFast
         from .models.funnel import FunnelTokenizerFast
         from .models.gpt2 import GPT2TokenizerFast
+        # from .models.gpt2_adaptive import GPT2TokenizerFast
         from .models.gpt_neox import GPTNeoXTokenizerFast
         from .models.gpt_neox_japanese import GPTNeoXJapaneseTokenizer
         from .models.herbert import HerbertTokenizerFast
@@ -5115,6 +5145,7 @@ if TYPE_CHECKING:
         from .utils.dummy_keras_nlp_objects import *
     else:
         from .models.gpt2 import TFGPT2Tokenizer
+        # from .models.gpt2_adaptive import TFGPT2Tokenizer
 
     try:
         if not is_vision_available():
@@ -5931,6 +5962,17 @@ if TYPE_CHECKING:
             GPT2PreTrainedModel,
             load_tf_weights_in_gpt2,
         )
+        # from .models.gpt2_adaptive import (
+        #     GPT2_PRETRAINED_MODEL_ARCHIVE_LIST,
+        #     GPT2DoubleHeadsModel,
+        #     GPT2ForQuestionAnswering,
+        #     GPT2ForSequenceClassification,
+        #     GPT2ForTokenClassification,
+        #     GPT2LMHeadModel,
+        #     GPT2Model,
+        #     GPT2PreTrainedModel,
+        #     load_tf_weights_in_gpt2,
+        # )
         from .models.gpt_bigcode import (
             GPT_BIGCODE_PRETRAINED_MODEL_ARCHIVE_LIST,
             GPTBigCodeForCausalLM,
@@ -7306,6 +7348,15 @@ if TYPE_CHECKING:
             TFGPT2Model,
             TFGPT2PreTrainedModel,
         )
+        # from .models.gpt2_adaptive import (
+        #     TF_GPT2_PRETRAINED_MODEL_ARCHIVE_LIST,
+        #     TFGPT2DoubleHeadsModel,
+        #     TFGPT2ForSequenceClassification,
+        #     TFGPT2LMHeadModel,
+        #     TFGPT2MainLayer,
+        #     TFGPT2Model,
+        #     TFGPT2PreTrainedModel,
+        # )
         from .models.gptj import (
             TFGPTJForCausalLM,
             TFGPTJForQuestionAnswering,
@@ -7743,6 +7794,7 @@ if TYPE_CHECKING:
         )
         from .models.encoder_decoder import FlaxEncoderDecoderModel
         from .models.gpt2 import FlaxGPT2LMHeadModel, FlaxGPT2Model, FlaxGPT2PreTrainedModel
+        # from .models.gpt2_adaptive import FlaxGPT2LMHeadModel, FlaxGPT2Model, FlaxGPT2PreTrainedModel
         from .models.gpt_neo import FlaxGPTNeoForCausalLM, FlaxGPTNeoModel, FlaxGPTNeoPreTrainedModel
         from .models.gptj import FlaxGPTJForCausalLM, FlaxGPTJModel, FlaxGPTJPreTrainedModel
         from .models.longt5 import FlaxLongT5ForConditionalGeneration, FlaxLongT5Model, FlaxLongT5PreTrainedModel

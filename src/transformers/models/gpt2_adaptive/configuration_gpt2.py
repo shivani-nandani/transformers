@@ -132,7 +132,7 @@ class GPT2Config(PretrainedConfig):
     >>> configuration = model.config
     ```"""
 
-    model_type = "gpt2"
+    model_type = "gpt2_adaptive"
     keys_to_ignore_at_inference = ["past_key_values"]
     attribute_map = {
         "hidden_size": "n_embd",
@@ -146,8 +146,8 @@ class GPT2Config(PretrainedConfig):
         vocab_size=50257,
         n_positions=1024,
         n_embd=768,
-        n_layer=1,  # TODO change layers back to 12
-        n_head=1,   # TODO change heads back to 12
+        n_layer=12,
+        n_head=12,
         n_inner=None,
         activation_function="gelu_new",
         resid_pdrop=0.1,
@@ -171,8 +171,8 @@ class GPT2Config(PretrainedConfig):
         self.vocab_size = vocab_size
         self.n_positions = n_positions
         self.n_embd = n_embd
-        self.n_layer = 12   # TODO n_layer 12
-        self.n_head = 12   # TODO n_head 12
+        self.n_layer = n_layer
+        self.n_head = n_head
         self.n_inner = n_inner
         self.activation_function = activation_function
         self.resid_pdrop = resid_pdrop

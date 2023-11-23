@@ -93,6 +93,7 @@ from . import (
     git,
     glpn,
     gpt2,
+    # gpt2_adaptive,
     gpt_bigcode,
     gpt_neo,
     gpt_neox,
